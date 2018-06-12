@@ -22,7 +22,7 @@ class AbstractVariable(object):
         return self.__mul__(x)
 
     def __mul__(self, x):
-        if isinstance(x, (float, int)):
+        if isinstance(x, (float, int, long)):
             return Expression(self, x)
         elif isinstance(x, Expression):
             if x.is_constant:
@@ -36,7 +36,7 @@ class AbstractVariable(object):
         return self.__div__(x)
 
     def __div__(self, x):
-        if isinstance(x, (float, int)):
+        if isinstance(x, (float, int, long)):
             if approx_equal(x, 0):
                 raise ZeroDivisionError()
             return Expression(self, 1.0 / x)
@@ -52,7 +52,7 @@ class AbstractVariable(object):
         return self.__add__(x)
 
     def __add__(self, x):
-        if isinstance(x, (int, float)):
+        if isinstance(x, (int, long, float)):
             return Expression(self, constant=x)
         elif isinstance(x, Expression):
             return Expression(self) + x
@@ -62,7 +62,7 @@ class AbstractVariable(object):
             return NotImplemented
 
     def __rsub__(self, x):
-        if isinstance(x, (int, float)):
+        if isinstance(x, (int, long, float)):
             return Expression(self, -1.0, constant=x)
         elif isinstance(x, Expression):
             return x - Expression(self)
@@ -72,7 +72,7 @@ class AbstractVariable(object):
             return NotImplemented
 
     def __sub__(self, x):
-        if isinstance(x, (int, float)):
+        if isinstance(x, (int, long, float)):
             return Expression(self, constant=-x)
         elif isinstance(x, Expression):
             return Expression(self) - x
@@ -94,7 +94,7 @@ class Variable(AbstractVariable):
     __hash__ = object.__hash__
 
     def __eq__(self, other):
-        if isinstance(other, (Expression, Variable, float, int)):
+        if isinstance(other, (Expression, Variable, float, int, long)):
             return Constraint(self, Constraint.EQ, other)
         else:
             return NotImplemented
@@ -106,7 +106,7 @@ class Variable(AbstractVariable):
         return self.__le__(other)
 
     def __le__(self, other):
-        if isinstance(other, (Expression, Variable, float, int)):
+        if isinstance(other, (Expression, Variable, float, int, long)):
             return Constraint(self, Constraint.LEQ, other)
         else:
             return NotImplemented
@@ -118,7 +118,7 @@ class Variable(AbstractVariable):
         return self.__ge__(other)
 
     def __ge__(self, other):
-        if isinstance(other, (Expression, Variable, float, int)):
+        if isinstance(other, (Expression, Variable, float, int, long)):
             return Constraint(self, Constraint.GEQ, other)
         else:
             return NotImplemented
@@ -160,7 +160,7 @@ class SlackVariable(AbstractVariable):
 
 class Expression(object):
     def __init__(self, variable=None, value=1.0, constant=0.0):
-        assert isinstance(constant, (float, int))
+        assert isinstance(constant, (float, int, long))
         assert variable is None or isinstance(variable, AbstractVariable)
 
         self.constant = float(constant)
@@ -210,7 +210,7 @@ class Expression(object):
                 result = Expression(x, self.constant)
             else:
                 return NotImplemented
-        elif isinstance(x, (float, int)):
+        elif isinstance(x, (float, int, long)):
             result = Expression(constant=self.constant * x)
             for clv, value in self.terms.items():
                 result.set_variable(clv, value * x)
@@ -222,7 +222,7 @@ class Expression(object):
         return self.__div__(x)
 
     def __div__(self, x):
-        if isinstance(x, (float, int)):
+        if isinstance(x, (float, int, long)):
             if approx_equal(x, 0):
                 raise ZeroDivisionError()
             result = Expression(constant=self.constant / x)
@@ -247,7 +247,7 @@ class Expression(object):
             result = self.clone()
             result.add_variable(x, 1.0)
             return result
-        elif isinstance(x, (int, float)):
+        elif isinstance(x, (int, long, float)):
             result = self.clone()
             result.add_expression(Expression(constant=x), 1.0)
             return result
@@ -265,7 +265,7 @@ class Expression(object):
             result.multiply(-1.0)
             result.add_variable(x, 1.0)
             return result
-        elif isinstance(x, (int, float)):
+        elif isinstance(x, (int, long, float)):
             result = self.clone()
             result.multiply(-1.0)
             result.add_expression(Expression(constant=x), 1.0)
@@ -282,7 +282,7 @@ class Expression(object):
             result = self.clone()
             result.add_variable(x, -1.0)
             return result
-        elif isinstance(x, (int, float)):
+        elif isinstance(x, (int, long, float)):
             result = self.clone()
             result.add_expression(Expression(constant=x), -1.0)
             return result
@@ -296,7 +296,7 @@ class Expression(object):
     __hash__ = object.__hash__
 
     def __eq__(self, other):
-        if isinstance(other, (Expression, Variable, float, int)):
+        if isinstance(other, (Expression, Variable, float, int, long)):
             return Constraint(self, Constraint.EQ, other)
         else:
             return NotImplemented
@@ -308,7 +308,7 @@ class Expression(object):
         return self.__le__(other)
 
     def __le__(self, other):
-        if isinstance(other, (Expression, Variable, float, int)):
+        if isinstance(other, (Expression, Variable, float, int, long)):
             return Constraint(self, Constraint.LEQ, other)
         else:
             return NotImplemented
@@ -320,7 +320,7 @@ class Expression(object):
         return self.__ge__(other)
 
     def __ge__(self, other):
-        if isinstance(other, (Expression, Variable, float, int)):
+        if isinstance(other, (Expression, Variable, float, int, long)):
             return Constraint(self, Constraint.GEQ, other)
         else:
             return NotImplemented
@@ -494,7 +494,7 @@ class Constraint(AbstractConstraint):
                 else:
                     raise InternalError("Invalid operator in Constraint constructor")
 
-            elif isinstance(param2, (float, int)):
+            elif isinstance(param2, (float, int, long)):
                 super(Constraint, self).__init__(strength=strength, weight=weight)
                 self.expression = param1.clone()
                 if operator == self.LEQ:
@@ -539,7 +539,7 @@ class Constraint(AbstractConstraint):
                 else:
                     raise InternalError("Invalid operator in Constraint constructor")
 
-            elif isinstance(param2, (float, int)):
+            elif isinstance(param2, (float, int, long)):
                 super(Constraint, self).__init__(strength=strength, weight=weight)
                 self.expression = Expression(constant=param2)
                 if operator == self.LEQ:
@@ -554,7 +554,7 @@ class Constraint(AbstractConstraint):
             else:
                 raise InternalError("Invalid parameters to Constraint constructor")
 
-        elif isinstance(param1, (float, int)):
+        elif isinstance(param1, (float, int, long)):
             if param2 is None:
                 super(Constraint, self).__init__(strength=strength, weight=weight)
                 self.expression = Expression(constant=param1)
@@ -585,7 +585,7 @@ class Constraint(AbstractConstraint):
                 else:
                     raise InternalError("Invalid operator in Constraint constructor")
 
-            elif isinstance(param2, (float, int)):
+            elif isinstance(param2, (float, int, long)):
                 raise InternalError("Cannot create an inequality between constants")
 
             else:
